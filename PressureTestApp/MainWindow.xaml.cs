@@ -15,8 +15,10 @@ namespace PressureTestApp
     public partial class MainWindow : Window
     {
         private EmulationService _emulationService;
+        private IDataService _dataService;
         private CancellationTokenSource _cts;
         private AppSettings _settings;
+        private TestSession _currentSession;
 
         private ObservableCollection<double> _pressureValues;
         private ObservableCollection<string> _timeLabels;
@@ -27,6 +29,7 @@ namespace PressureTestApp
             InitializeComponent();
 
             _emulationService = new EmulationService();
+            _dataService = new LiteDbService();
             _settings = SettingsService.LoadSettings();
 
             // Инициализация коллекций
@@ -34,31 +37,27 @@ namespace PressureTestApp
             _timeLabels = new ObservableCollection<string>();
             _chartValues = new ChartValues<double>();
 
-            // Создаём серию графика
             var lineSeries = new LineSeries
             {
                 Title = "Давление",
                 Values = _chartValues,
                 PointGeometrySize = 5,
                 StrokeThickness = 2,
-                Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(100, 100, 150, 255)),
-                AreaLimit = 0  // Заливка от линии до нуля
+                Fill = System.Windows.Media.Brushes.LightBlue,
+                AreaLimit = 0
             };
 
             PressureChart.Series = new SeriesCollection { lineSeries };
 
-            // Очищаем оси на всякий случай
             PressureChart.AxisX.Clear();
             PressureChart.AxisY.Clear();
 
-            // Настройка оси X
             PressureChart.AxisX.Add(new Axis
             {
                 Title = "Время",
                 Labels = _timeLabels
             });
 
-            // Настройка оси Y
             PressureChart.AxisY.Add(new Axis
             {
                 Title = "Давление (усл. ед.)",
@@ -66,10 +65,8 @@ namespace PressureTestApp
                 MinValue = 0
             });
 
-            // Загружаем название из настроек
             TestNameBox.Text = _settings.LastTestName;
 
-            // Подписываемся на события
             _emulationService.PressureUpdated += OnPressureUpdated;
             SettingsBtn.Click += SettingsBtn_Click;
             StartBtn.Click += StartBtn_Click;
@@ -86,16 +83,11 @@ namespace PressureTestApp
 
             _settings = SettingsService.LoadSettings();
 
-            // Очищаем все коллекции
             _pressureValues.Clear();
             _timeLabels.Clear();
             _chartValues.Clear();
 
-            StartBtn.IsEnabled = false;
-            StopBtn.IsEnabled = true;
-            SettingsBtn.IsEnabled = false;
-            StatusText.Text = "Испытание запущено...";
-
+            // Создаём сессию испытания
             double param = _settings.LastEmulationType switch
             {
                 "Static" => _settings.StaticValue,
@@ -104,11 +96,30 @@ namespace PressureTestApp
                 _ => 0
             };
 
+            _currentSession = new TestSession
+            {
+                Name = TestNameBox.Text,
+                StartTime = DateTime.Now,
+                EmulationType = _settings.LastEmulationType,
+                Param1 = param
+            };
+            _dataService.SaveSession(_currentSession);
+
+            StartBtn.IsEnabled = false;
+            StopBtn.IsEnabled = true;
+            SettingsBtn.IsEnabled = false;
+            StatusText.Text = "Испытание запущено...";
+
             _cts = new CancellationTokenSource();
 
             try
             {
                 await _emulationService.StartEmulation(_settings.LastEmulationType, param, _cts.Token);
+
+                _currentSession.EndTime = DateTime.Now;
+                _currentSession.PointsCount = _pressureValues.Count;
+                _dataService.SaveSession(_currentSession);
+
                 StatusText.Text = $"Испытание завершено. Записано {_pressureValues.Count} точек";
             }
             catch (Exception ex)
@@ -133,21 +144,26 @@ namespace PressureTestApp
         {
             Dispatcher.Invoke(() =>
             {
-                // Обновляем отображение
                 CurrentPressureText.Text = pressure.ToString("F3");
 
-                // Добавляем данные в коллекции
                 _pressureValues.Add(pressure);
                 _timeLabels.Add(DateTime.Now.ToString("HH:mm:ss"));
                 _chartValues.Add(pressure);
 
-                // Обновляем метки времени на оси X
+                // Сохраняем каждую точку в БД
+                var measurement = new Measurement
+                {
+                    TestName = TestNameBox.Text,
+                    Timestamp = DateTime.Now,
+                    Pressure = pressure
+                };
+                _dataService.SaveMeasurement(measurement);
+
                 if (PressureChart.AxisX.Count > 0)
                 {
                     PressureChart.AxisX[0].Labels = _timeLabels;
                 }
 
-                // Обновляем масштаб оси Y
                 if (PressureChart.AxisY.Count > 0 && _pressureValues.Count > 0)
                 {
                     double maxValue = _pressureValues.Max();
@@ -157,7 +173,6 @@ namespace PressureTestApp
                     PressureChart.AxisY[0].MinValue = Math.Max(0, minValue - (minValue * 0.1));
                 }
 
-                // Принудительно обновляем график
                 PressureChart.Update();
             });
         }
@@ -172,6 +187,40 @@ namespace PressureTestApp
             TestNameBox.Text = _settings.LastTestName;
             StatusText.Text = "Настройки сохранены. Нажмите Старт для начала испытания";
             StartBtn.IsEnabled = true;
+        }
+
+        public void LoadHistoricalData(string testName)
+        {
+            var measurements = _dataService.GetMeasurementsByTestName(testName);
+
+            _pressureValues.Clear();
+            _timeLabels.Clear();
+            _chartValues.Clear();
+
+            foreach (var m in measurements)
+            {
+                _pressureValues.Add(m.Pressure);
+                _chartValues.Add(m.Pressure);
+                _timeLabels.Add(m.Timestamp.ToString("HH:mm:ss"));
+            }
+
+            if (PressureChart.AxisX.Count > 0)
+            {
+                PressureChart.AxisX[0].Labels = _timeLabels;
+            }
+
+            if (PressureChart.AxisY.Count > 0 && _pressureValues.Count > 0)
+            {
+                double maxValue = _pressureValues.Max();
+                double minValue = _pressureValues.Min();
+
+                PressureChart.AxisY[0].MaxValue = maxValue + (maxValue * 0.1);
+                PressureChart.AxisY[0].MinValue = Math.Max(0, minValue - (minValue * 0.1));
+            }
+
+            TestNameBox.Text = testName;
+            StatusText.Text = $"Загружено испытание \"{testName}\" ({_pressureValues.Count} точек)";
+            PressureChart.Update();
         }
     }
 }
