@@ -218,23 +218,34 @@ namespace PressureTestApp
             Dispatcher.Invoke(() =>
             {
                 var session = _dataService.GetSession(sessionId);
-                if (session == null) return;
+                if (session == null)
+                {
+                    StatusText.Text = "Ошибка: сессия не найдена";
+                    return;
+                }
 
                 var measurements = _dataService.GetMeasurementsByTestName(session.Name);
 
-                _pressureValues.Clear();
-                _timeLabels.Clear();
-                _chartValues.Clear();
+                // СОЗДАЁМ НОВЫЕ КОЛЛЕКЦИИ (вместо очистки старых)
+                var newPressureValues = new ObservableCollection<double>();
+                var newTimeLabels = new ObservableCollection<string>();
+                var newChartValues = new ChartValues<double>();
 
                 foreach (var m in measurements)
                 {
-                    _pressureValues.Add(m.Pressure);
-                    _chartValues.Add(m.Pressure);
-                    _timeLabels.Add(m.Timestamp.ToString("HH:mm:ss"));
+                    newPressureValues.Add(m.Pressure);
+                    newChartValues.Add(m.Pressure);
+                    newTimeLabels.Add(m.Timestamp.ToString("HH:mm:ss"));
                 }
 
-                // Пересоздаём серию
+                // Заменяем старые коллекции новыми
+                _pressureValues = newPressureValues;
+                _timeLabels = newTimeLabels;
+                _chartValues = newChartValues;
+
+                // Полностью заменяем серию
                 PressureChart.Series.Clear();
+
                 var newSeries = new LineSeries
                 {
                     Title = "Давление",
@@ -244,6 +255,7 @@ namespace PressureTestApp
                     Fill = System.Windows.Media.Brushes.LightBlue,
                     AreaLimit = 0
                 };
+
                 PressureChart.Series.Add(newSeries);
 
                 // Обновляем оси
