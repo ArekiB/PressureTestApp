@@ -1,7 +1,8 @@
 ﻿<Window x:Class="PressureTestApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Система испытаний давления" Height="500" Width="800"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        Title="Система испытаний давления" Height="600" Width="900"
         WindowStartupLocation="CenterScreen">
 
     <Grid Margin="20">
@@ -13,27 +14,25 @@
         </Grid.RowDefinitions>
 
         <TextBlock Text="Система испытаний давления" FontSize="24" FontWeight="Bold" 
-                   HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                   HorizontalAlignment="Center" Margin="0,0,0,10"/>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
-            <Button x:Name="BtnSettings" Content="Настройки" Width="120" Height="35" 
-                    Click="BtnSettings_Click" Margin="0,0,10,0"/>
-            <Button x:Name="BtnStart" Content="Старт" Width="120" Height="35" 
-                    IsEnabled="False" Margin="0,0,10,0"/>
-            <Button x:Name="BtnStop" Content="Стоп" Width="120" Height="35" 
-                    IsEnabled="False"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+            <TextBox x:Name="TestNameBox" Width="200" Padding="5" Margin="0,0,10,0"/>
+            <Button x:Name="StartBtn" Content="Старт" Width="100" Height="35" 
+                    Margin="0,0,10,0" IsEnabled="False"/>
+            <Button x:Name="StopBtn" Content="Стоп" Width="100" Height="35" 
+                    Margin="0,0,10,0" IsEnabled="False"/>
+            <Button x:Name="SettingsBtn" Content="Настройки" Width="100" Height="35"/>
         </StackPanel>
 
-        <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness="1" 
-                Background="White" CornerRadius="5">
-            <TextBlock Text="График давления будет отображаться здесь после запуска испытания" 
-                       HorizontalAlignment="Center" VerticalAlignment="Center" 
-                       Foreground="Gray" TextWrapping="Wrap" TextAlignment="Center"/>
-        </Border>
+        <!-- ГРАФИК БЕЗ ОСЕЙ ВНУТРИ -->
+        <lvc:CartesianChart x:Name="PressureChart" Grid.Row="2" Margin="0,10"/>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,20,0,0">
-            <TextBlock Text="Статус:" FontWeight="Bold" Margin="0,0,10,0"/>
-            <TextBlock x:Name="TxtStatus" Text="Готов к работе" Foreground="Green"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBlock Text="Текущее давление:" FontWeight="Bold" Margin="0,0,10,0"/>
+            <TextBlock x:Name="CurrentPressureText" FontWeight="Bold" Foreground="Blue" Width="80"/>
+            <TextBlock Text="усл. ед." Margin="0,0,20,0"/>
+            <TextBlock x:Name="StatusText" Foreground="Gray"/>
         </StackPanel>
     </Grid>
 </Window>

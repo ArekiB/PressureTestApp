@@ -63,9 +63,9 @@ namespace PressureTestApp.Views
             double.TryParse(RampStepBox.Text, out double rampStep);
             double.TryParse(RandomLimitBox.Text, out double randomLimit);
 
-            _settings.StaticValue = staticVal;
-            _settings.RampStep = rampStep;
-            _settings.RandomLimit = randomLimit;
+            _settings.StaticValue = Math.Round(staticVal, 3);
+            _settings.RampStep = Math.Round(rampStep, 3);
+            _settings.RandomLimit = Math.Round(randomLimit, 3);
 
             // Сохраняем в JSON
             SettingsService.SaveSettings(_settings);
