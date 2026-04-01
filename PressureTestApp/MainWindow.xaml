@@ -18,14 +18,12 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
             <TextBox x:Name="TestNameBox" Width="200" Padding="5" Margin="0,0,10,0"/>
-            <Button x:Name="StartBtn" Content="Старт" Width="100" Height="35" 
-                    Margin="0,0,10,0" IsEnabled="False"/>
-            <Button x:Name="StopBtn" Content="Стоп" Width="100" Height="35" 
-                    Margin="0,0,10,0" IsEnabled="False"/>
-            <Button x:Name="SettingsBtn" Content="Настройки" Width="100" Height="35"/>
+            <Button x:Name="StartBtn" Content="Старт" Width="100" Height="35" Margin="0,0,10,0" IsEnabled="False"/>
+            <Button x:Name="StopBtn" Content="Стоп" Width="100" Height="35" Margin="0,0,10,0" IsEnabled="False"/>
+            <Button x:Name="SettingsBtn" Content="Настройки" Width="100" Height="35" Margin="0,0,10,0"/>
+            <Button x:Name="HistoryBtn" Content="История" Width="100" Height="35"/>
         </StackPanel>
 
-        <!-- ГРАФИК БЕЗ ОСЕЙ ВНУТРИ -->
         <lvc:CartesianChart x:Name="PressureChart" Grid.Row="2" Margin="0,10"/>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
