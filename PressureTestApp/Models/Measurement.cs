@@ -12,5 +12,6 @@ namespace PressureTestApp.Models
         public string TestName { get; set; }
         public DateTime Timestamp { get; set; }
         public double Pressure { get; set; }
+        public int Index { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace PressureTestApp.Services
 {
     public class EmulationService
     {
-        private readonly Random _random = new Random();
+        private CancellationTokenSource _cts;
         private bool _isRunning;
 
         public bool IsRunning => _isRunning;
@@ -26,7 +26,6 @@ namespace PressureTestApp.Services
                     {
                         "Static" => param1,
                         "Ramp" => currentPressure += param1,
-                        "Random" => _random.NextDouble() * param1,
                         _ => 0
                     };
 
@@ -35,12 +34,16 @@ namespace PressureTestApp.Services
                     PressureUpdated?.Invoke(this, newPressure);
                     currentPressure = newPressure;
 
+                    // Проверяем отмену перед задержкой
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
+
                     await Task.Delay(1000, cancellationToken);
                 }
             }
             catch (TaskCanceledException)
             {
-                // Нормальная остановка
+                // Нормальная остановка - не добавляем больше точек
             }
             finally
             {
@@ -50,7 +53,7 @@ namespace PressureTestApp.Services
 
         public void StopEmulation()
         {
-            // Метод для остановки (будем использовать CancellationTokenSource)
+            _cts?.Cancel();
         }
     }
 }

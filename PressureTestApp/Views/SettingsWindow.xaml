@@ -1,43 +1,88 @@
 ﻿<Window x:Class="PressureTestApp.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Настройки" Height="400" Width="450"
+        Title="Настройки" Height="700" Width="500"
         WindowStartupLocation="CenterOwner">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+	<ScrollViewer VerticalScrollBarVisibility="Auto">
+		<Grid Margin="20">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
 
-        <TextBlock Text="Название испытания:" Margin="0,0,0,5"/>
-        <TextBox x:Name="TestNameBox" Grid.Row="1" Margin="0,0,0,15"/>
+			<!-- Название испытания -->
+			<TextBlock Text="Название испытания:" Margin="0,0,0,5"/>
+			<TextBox x:Name="TestNameBox" Grid.Row="1" Margin="0,0,0,15"/>
 
-        <TextBlock Grid.Row="2" Text="Тип эмуляции:" Margin="0,0,0,5"/>
-        <ComboBox x:Name="TypeCombo" Grid.Row="3" Margin="0,0,0,15"/>
+			<!-- Блок эмуляции -->
+			<StackPanel x:Name="EmulationPanel" Grid.Row="2" Grid.RowSpan="3">
+				<TextBlock Text="Тип эмуляции:" Margin="0,0,0,5"/>
+				<ComboBox x:Name="TypeCombo" Margin="0,0,0,15">
+					<ComboBoxItem Content="Static"/>
+					<ComboBoxItem Content="Ramp"/>
+				</ComboBox>
 
-        <StackPanel x:Name="StaticPanel" Grid.Row="4">
-            <TextBlock Text="Значение давления:" Margin="0,0,0,5"/>
-            <TextBox x:Name="StaticValueBox"/>
-        </StackPanel>
+				<StackPanel x:Name="StaticPanel">
+					<TextBlock Text="Значение давления:" Margin="0,0,0,5"/>
+					<TextBox x:Name="StaticValueBox" Text="150"/>
+				</StackPanel>
 
-        <StackPanel x:Name="RampPanel" Grid.Row="4" Visibility="Collapsed">
-            <TextBlock Text="Шаг изменения:" Margin="0,0,0,5"/>
-            <TextBox x:Name="RampStepBox"/>
-        </StackPanel>
+				<StackPanel x:Name="RampPanel" Visibility="Collapsed">
+					<TextBlock Text="Шаг изменения:" Margin="0,0,0,5"/>
+					<TextBox x:Name="RampStepBox" Text="1"/>
+				</StackPanel>
+			</StackPanel>
 
-        <StackPanel x:Name="RandomPanel" Grid.Row="4" Visibility="Collapsed">
-            <TextBlock Text="Максимальное давление:" Margin="0,0,0,5"/>
-            <TextBox x:Name="RandomLimitBox"/>
-        </StackPanel>
+			<Separator Grid.Row="5" Margin="0,20,0,10"/>
 
-        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button x:Name="SaveBtn" Content="Сохранить" Width="80" Margin="0,0,10,0"/>
-            <Button x:Name="CancelBtn" Content="Отмена" Width="80"/>
-        </StackPanel>
-    </Grid>
+			<!-- Modbus TCP настройки -->
+			<Expander Grid.Row="6" Header="Modbus TCP настройки" IsExpanded="False" Margin="0,5,0,0">
+				<StackPanel Margin="10,10,0,15">
+					<CheckBox x:Name="UseModbusCheck" Content="Использовать Modbus вместо эмуляции" Margin="0,0,0,15"/>
+
+					<TextBlock Text="IP адрес:" Margin="0,10,0,5"/>
+					<TextBox x:Name="ModbusIpBox" Text="127.0.0.1"/>
+
+					<TextBlock Text="Port:" Margin="0,10,0,5"/>
+					<TextBox x:Name="ModbusPortBox" Text="502"/>
+
+					<TextBlock Text="Slave ID:" Margin="0,10,0,5"/>
+					<TextBox x:Name="ModbusSlaveIdBox" Text="1"/>
+
+					<TextBlock Text="Адрес регистра:" Margin="0,10,0,5"/>
+					<TextBox x:Name="ModbusAddressBox" Text="0"/>
+
+					<TextBlock Text="Тип данных:" Margin="0,10,0,5"/>
+					<ComboBox x:Name="ModbusTypeCombo" SelectedIndex="0">
+						<ComboBoxItem Content="float"/>
+						<ComboBoxItem Content="int"/>
+						<ComboBoxItem Content="bool"/>
+						<ComboBoxItem Content="string"/>
+					</ComboBox>
+
+					<TextBlock Text="Множитель (scale):" Margin="0,10,0,5"/>
+					<TextBox x:Name="ModbusScaleBox" Text="1.0"/>
+				</StackPanel>
+			</Expander>
+
+			<!-- Кнопки -->
+			<StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+				<Button x:Name="TestModbusBtn" Content="Тест Modbus" Width="100" Height="30" Margin="0,0,10,0"/>
+				<Button x:Name="SaveBtn" Content="Сохранить" Width="80" Margin="0,0,10,0"/>
+				<Button x:Name="CancelBtn" Content="Отмена" Width="80"/>
+			</StackPanel>
+
+			<!-- Статус -->
+			<TextBlock x:Name="StatusText" Grid.Row="8" Foreground="Gray" FontSize="10" Margin="0,10,0,0"/>
+		</Grid>
+	</ScrollViewer>
 </Window>
